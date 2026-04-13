@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DuckAI Export</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <!-- ====== 状态感知区 ====== -->
+  <header class="status-bar" id="statusBar">
+    <div class="status-left">
+      <div class="status-indicator" id="statusIndicator"></div>
+      <span class="status-text" id="statusText" data-i18n="statusConnecting">正在连接...</span>
+    </div>
+    <div class="privacy-badge" id="privacyBadge" title="数据仅在本地处理，不会上传任何服务器">
+      <span>🔒</span>
+      <span data-i18n="privacyBadge">隐私安全</span>
+    </div>
+  </header>
+
+  <!-- ====== 数据大盘 ====== -->
+  <section class="stats" id="statsSection">
+    <div class="stats-number" id="chatCount">--</div>
+    <div class="stats-label" data-i18n="statsLabel">个对话主题</div>
+  </section>
+
+  <!-- ====== 行动区 ====== -->
+  <section class="actions" id="actionsSection">
+    <button class="btn btn-primary" id="btnExportAll" disabled>
+      <span class="btn-icon">📦</span>
+      <span data-i18n="btnExportAll">全量打包导出 (ZIP)</span>
+    </button>
+    <button class="btn btn-secondary" id="btnExportSingle" disabled>
+      <span class="btn-icon">📄</span>
+      <span data-i18n="btnExportSingle">导出最近对话 (MD/ZIP)</span>
+    </button>
+  </section>
+
+  <!-- ====== 进度区 ====== -->
+  <section class="progress-section" id="progressSection" hidden>
+    <div class="progress-steps" id="progressSteps">
+      <div class="step" id="step1">
+        <span class="step-dot">●</span>
+        <span class="step-text" id="step1Text" data-i18n="stepWaiting">等待中...</span>
+      </div>
+    </div>
+    <div class="progress-bar-wrapper" id="progressBarWrapper" hidden>
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+  </section>
+
+  <!-- ====== 配置区（折叠面板） ====== -->
+  <details class="settings" id="settingsPanel">
+    <summary class="settings-toggle" data-i18n="settingsToggle">⚙️ 选项设置</summary>
+    <div class="settings-body">
+      <label class="setting-item">
+        <input type="checkbox" id="optIncludeImages" checked />
+        <div class="setting-text">
+          <span data-i18n="settingIncludeImages">包含图片资源</span>
+          <span class="setting-hint" data-i18n="settingIncludeImagesHint">关闭可大幅提升速度并减小体积</span>
+        </div>
+      </label>
+      <div class="setting-item">
+        <span class="setting-label" data-i18n="settingArchiveLabel">全量导出归档模式</span>
+        <div class="radio-group">
+          <label class="radio-item">
+            <input type="radio" name="archiveLevel" value="flat" />
+            <span data-i18n="archiveFlat">平铺式</span>
+          </label>
+          <label class="radio-item">
+            <input type="radio" name="archiveLevel" value="year" checked />
+            <span data-i18n="archiveYear">按年份</span>
+          </label>
+          <label class="radio-item">
+            <input type="radio" name="archiveLevel" value="yearMonth" />
+            <span data-i18n="archiveYearMonth">按年月</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <!-- ====== 结束提示 ====== -->
+  <footer class="footer" id="footer" hidden>
+    <div class="success-hint" id="successHint">
+      <span class="success-icon">✅</span>
+      <span data-i18n="successHint">导出成功，请在浏览器下载记录中查看</span>
+    </div>
+  </footer>
+
+  <!-- ====== 源码链接 ====== -->
+  <div class="github-link">
+    <a href="https://github.com/Evolution-detector/DuckAI-Export" id="githubLink" target="_blank" rel="noopener noreferrer" title="查看源码">
+      <svg class="github-icon" viewBox="0 0 15 15" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M7.49936 0.850006C3.82767 0.850006 0.849976 3.8273 0.849976 7.50023C0.849976 10.4379 2.75523 12.9306 5.39775 13.8104C5.73047 13.8712 5.85171 13.6658 5.85171 13.4895C5.85171 13.3315 5.846 12.9135 5.84273 12.3587C3.99301 12.7604 3.60273 11.4671 3.60273 11.4671C3.30022 10.6988 2.86423 10.4942 2.86423 10.4942C2.26044 10.0819 2.90995 10.0901 2.90995 10.0901C3.57742 10.137 3.9285 10.7755 3.9285 10.7755C4.52167 11.7916 5.48512 11.4981 5.86396 11.3279C5.92438 10.8984 6.09625 10.6053 6.28608 10.4391C4.80948 10.2709 3.25695 9.70063 3.25695 7.15241C3.25695 6.42615 3.51618 5.83298 3.94157 5.368C3.87299 5.1998 3.64478 4.52375 4.00689 3.60807C4.00689 3.60807 4.56494 3.42926 5.83538 4.28941C6.36568 4.14204 6.93477 4.06856 7.50018 4.0657C8.06518 4.06856 8.63386 4.14204 9.16498 4.28941C10.4346 3.42926 10.9918 3.60807 10.9918 3.60807C11.3548 4.52375 11.1266 5.1998 11.0584 5.368C11.4846 5.83298 11.7418 6.42615 11.7418 7.15241C11.7418 9.70716 10.1868 10.2693 8.70571 10.4338C8.94412 10.6392 9.15681 11.045 9.15681 11.6655C9.15681 12.5542 9.14865 13.2715 9.14865 13.4895C9.14865 13.6675 9.26867 13.8745 9.60588 13.8095C12.2464 12.9282 14.15 10.4375 14.15 7.50023C14.15 3.8273 11.1723 0.850006 7.49936 0.850006Z"/>
+      </svg>
+      <span data-i18n="githubLink">看源码点亮⭐</span>
+    </a>
+  </div>
+
+  <script type="module" src="./index.ts"></script>
+</body>
+</html>

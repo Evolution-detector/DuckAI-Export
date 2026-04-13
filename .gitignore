@@ -1,0 +1,21 @@
+# dependencies
+node_modules/
+
+# build outputs
+dist/
+extension/
+
+# logs
+*.log
+build_*.bat
+_build_*
+*_build.*
+*.build.*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

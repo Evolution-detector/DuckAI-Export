@@ -1,0 +1,388 @@
+/* ============================================================
+   DuckAI Export - Popup 样式
+   设计原则：克制、透明、极客感
+   ============================================================ */
+
+:root {
+  --bg: #1e1e2e;
+  --bg-card: #2a2a3e;
+  --bg-hover: #363652;
+  --border: #3d3d5c;
+  --text-primary: #cdd6f4;
+  --text-secondary: #a6adc8;
+  --text-muted: #6c7086;
+  --accent: #89b4fa;
+  --accent-hover: #74aaf7;
+  --green: #a6e3a1;
+  --red: #f38ba8;
+  --radius: 8px;
+  --font: 'Segoe UI', 'SF Pro Display', system-ui, sans-serif;
+  --width: 380px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  width: var(--width);
+  min-height: 280px;
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+/* ====== 隐私安全角标 ====== */
+.privacy-badge {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  color: var(--text-muted);
+  cursor: default;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+/* ====== 状态感知区 ====== */
+.status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-card);
+  min-height: 42px;
+}
+
+.status-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  flex-shrink: 0;
+  transition: background 0.3s;
+}
+
+.status-indicator.connected {
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+}
+
+.status-indicator.error {
+  background: var(--red);
+}
+
+.status-text {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+/* ====== 数据大盘 ====== */
+.stats {
+  text-align: center;
+  padding: 20px 16px 12px;
+}
+
+.stats-number {
+  font-size: 42px;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -2px;
+}
+
+.stats-label {
+  color: var(--text-secondary);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* ====== 行动区 ====== */
+.actions {
+  padding: 8px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  width: 100%;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #1e1e2e;
+  border-color: var(--accent);
+}
+
+.btn-primary:not(:disabled):hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.btn-primary:not(:disabled):active {
+  transform: scale(0.98);
+}
+
+.btn-secondary {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--border);
+}
+
+.btn-secondary:not(:disabled):hover {
+  background: var(--bg-hover);
+  border-color: var(--accent);
+}
+
+.btn-secondary:not(:disabled):active {
+  transform: scale(0.98);
+}
+
+.btn-icon {
+  font-size: 15px;
+}
+
+/* ====== 进度区 ====== */
+.progress-section {
+  padding: 0 16px 12px;
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+  padding-top: 10px;
+}
+
+.progress-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+  transition: color 0.2s;
+}
+
+.step-dot {
+  font-size: 10px;
+  flex-shrink: 0;
+}
+
+.progress-bar-wrapper {
+  height: 4px;
+  background: var(--bg-hover);
+  border-radius: 2px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--green));
+  border-radius: 2px;
+  transition: width 0.2s ease;
+  width: 0%;
+}
+
+/* ====== 配置区 ====== */
+.settings {
+  border-top: 1px solid var(--border);
+  padding: 0;
+}
+
+.settings-toggle {
+  padding: 10px 16px;
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.settings-toggle:hover {
+  color: var(--text-secondary);
+}
+
+.settings-toggle::before {
+  content: '▶';
+  font-size: 9px;
+  transition: transform 0.2s;
+  margin-right: 4px;
+}
+
+details[open] .settings-toggle::before {
+  transform: rotate(90deg);
+}
+
+.settings-body {
+  padding: 4px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.setting-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.setting-item:has(input[type="checkbox"]) {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.setting-item > input[type="checkbox"] {
+  margin-top: 3px;
+  flex-shrink: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.setting-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.setting-text > span {
+  color: var(--text-primary);
+}
+
+.setting-hint {
+  font-size: 11px !important;
+  color: var(--text-muted) !important;
+  display: block;
+  line-height: 1.4;
+}
+
+.setting-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+  display: block;
+}
+
+.radio-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.radio-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.radio-item input {
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.radio-item:has(input:checked) {
+  color: var(--accent);
+}
+
+/* ====== 底部提示 ====== */
+.footer {
+  border-top: 1px solid var(--border);
+  padding: 10px 16px;
+  text-align: center;
+}
+
+.success-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--green);
+}
+
+/* ====== 源码链接 ====== */
+.github-link {
+  display: flex;
+  justify-content: flex-end;
+  padding: 6px 10px 8px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-card);
+}
+
+.github-link a {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 11px;
+  transition: color 0.15s ease;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.github-link a:hover {
+  color: var(--accent);
+  background: var(--bg-hover);
+}
+
+.github-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+/* ====== 滚动条 ====== */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DuckAI Export</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <!-- ====== 状态感知区 ====== -->
+  <header class="status-bar" id="statusBar">
+    <div class="status-indicator" id="statusIndicator"></div>
+    <span class="status-text" id="statusText">正在连接...</span>
+  </header>
+
+  <!-- ====== 数据大盘 ====== -->
+  <section class="stats" id="statsSection">
+    <div class="stats-number" id="chatCount">--</div>
+    <div class="stats-label">个对话主题</div>
+  </section>
+
+  <!-- ====== 行动区 ====== -->
+  <section class="actions" id="actionsSection">
+    <button class="btn btn-primary" id="btnExportAll" disabled>
+      <span class="btn-icon">📦</span>
+      全量打包导出 (ZIP)
+    </button>
+    <button class="btn btn-secondary" id="btnExportSingle" disabled>
+      <span class="btn-icon">📄</span>
+      导出当前会话 (MD)
+    </button>
+  </section>
+
+  <!-- ====== 进度区 ====== -->
+  <section class="progress-section" id="progressSection" hidden>
+    <div class="progress-steps" id="progressSteps">
+      <div class="step" id="step1">
+        <span class="step-dot">●</span>
+        <span class="step-text" id="step1Text">等待中...</span>
+      </div>
+    </div>
+    <div class="progress-bar-wrapper" id="progressBarWrapper" hidden>
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+  </section>
+
+  <!-- ====== 配置区（折叠面板） ====== -->
+  <details class="settings" id="settingsPanel">
+    <summary class="settings-toggle">⚙️ 选项设置</summary>
+    <div class="settings-body">
+      <label class="setting-item">
+        <input type="checkbox" id="optIncludeImages" checked />
+        <span>包含图片资源</span>
+        <span class="setting-hint">关闭可大幅提升速度并减小体积</span>
+      </label>
+      <div class="setting-item">
+        <span class="setting-label">归档层级</span>
+        <div class="radio-group">
+          <label class="radio-item">
+            <input type="radio" name="archiveLevel" value="flat" />
+            <span>平铺式</span>
+          </label>
+          <label class="radio-item">
+            <input type="radio" name="archiveLevel" value="year" checked />
+            <span>按年份</span>
+          </label>
+          <label class="radio-item">
+            <input type="radio" name="archiveLevel" value="yearMonth" />
+            <span>按年月</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <!-- ====== 结束提示 ====== -->
+  <footer class="footer" id="footer" hidden>
+    <div class="success-hint" id="successHint">
+      <span class="success-icon">✅</span>
+      导出成功，请在浏览器下载记录中查看
+    </div>
+  </footer>
+
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>

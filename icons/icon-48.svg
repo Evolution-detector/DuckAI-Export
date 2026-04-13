@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <rect width="48" height="48" rx="10" fill="#1e1e2e"/>
+  <!-- Duck body -->
+  <ellipse cx="24" cy="28" rx="14" ry="11" fill="#f9e2af"/>
+  <!-- Duck head -->
+  <circle cx="24" cy="17" r="9" fill="#f9e2af"/>
+  <!-- Duck beak -->
+  <ellipse cx="29" cy="18" rx="4" ry="2.5" fill="#fab387"/>
+  <!-- Duck eye -->
+  <circle cx="26" cy="15" r="2" fill="#1e1e2e"/>
+  <!-- Export arrow -->
+  <path d="M12 36 L20 44 M20 44 L20 32 M20 32 L28 40 M28 40 L28 30 M28 30 L36 38" stroke="#89b4fa" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>

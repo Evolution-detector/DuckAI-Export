@@ -1,0 +1,10 @@
+{
+  "extensionName": {
+    "message": "DuckAI Export",
+    "description": "Extension name"
+  },
+  "extensionDescription": {
+    "message": "一键将 Duck.ai 对话导出为结构化 Markdown 备份。",
+    "description": "Extension description"
+  }
+}

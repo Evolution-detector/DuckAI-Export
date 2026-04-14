@@ -156,19 +156,22 @@ class ExportManager {
 
     // 获取时间戳用于文件名：用 lastEdit 或第一条消息的 createdAt
     const timestamp = chat.lastEdit || (chat.messages?.[0] as Record<string, unknown>)?.createdAt;
-    // 单次导出使用扁平结构 + 带时间戳的文件名
-    const filenameWithDate = getFilenameWithDate(chat.title, timestamp);
+    // 单次导出使用扁平结构 + 带时间戳的文件名，model 为 image-generation 时加【image】前缀
+    const filenameWithDate = getFilenameWithDate(chat.title, timestamp, chat.model);
+    const downloadFilename = filenameWithDate.endsWith('.md')
+      ? filenameWithDate.slice(0, -3)
+      : filenameWithDate;
 
     const attachments = imageMap?.get(chatId) ?? [];
     const imageCount = attachments.filter(a => isImageMime(a.mimeType)).length;
     const attachCount = attachments.length - imageCount;
-    console.log('[DuckAI-Export] 单个导出文件名:', filenameWithDate, '图片:', imageCount, '附件:', attachCount);
+    console.log('[DuckAI-Export] 单个导出文件名:', downloadFilename, '图片:', imageCount, '附件:', attachCount);
 
     // 如果没有任何附件，直接下载 .md 文件
     if (attachments.length === 0) {
       console.log('[DuckAI-Export] 无附件，直接下载 .md 文件');
       const mdBlob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
-      triggerDownload(mdBlob, filenameWithDate + '.md');
+      triggerDownload(mdBlob, downloadFilename + '.md');
       return;
     }
 
@@ -189,7 +192,7 @@ class ExportManager {
         if (chunk) chunks.push(chunk);
         if (isFinal) {
           const zipBlob = new Blob(chunks, { type: 'application/zip' });
-          triggerDownload(zipBlob, `${filenameWithDate}.zip`);
+          triggerDownload(zipBlob, `${downloadFilename}.zip`);
           resolve();
         }
       });
@@ -305,9 +308,9 @@ class ExportManager {
 
             // 获取文件夹路径的时间：用 lastEdit 或第一条消息的 createdAt
             const timestamp = chat.lastEdit || (chat.messages?.[0] as Record<string, unknown>)?.createdAt;
-            // 文件名带时间戳
-            const filenameWithDate = getFilenameWithDate(chat.title, timestamp);
-            const mdPath = getArchivePath(filenameWithDate, timestamp, settings.archiveLevel);
+            // 文件名带时间戳，model 为 image-generation 时加【image】前缀
+            const filenameWithDate = getFilenameWithDate(chat.title, timestamp, chat.model);
+            const mdPath = getArchivePath(filenameWithDate, timestamp, settings.archiveLevel, chat.model);
             console.log(`[DuckAI-Export] 文件路径: ${mdPath}, 内容长度: ${md.length}`);
             const deflate = new ZipDeflate(mdPath, { level: 6 });
             zip.add(deflate);

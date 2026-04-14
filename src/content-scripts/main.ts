@@ -271,7 +271,9 @@ export class ExportManager {
     for (let i = 0; i < chat.messages.length; i++) {
       const msg = chat.messages[i];
       const content = extractMessageContent(msg);
-      const roleLabel = msg.role === 'user' ? '👤 用户' : '🤖 AI';
+      const roleLabel = msg.role === 'user'
+        ? (navigator.language.startsWith('en') ? '👤 User' : '👤 用户')
+        : '🤖 AI';
       const timeLabel = msg.createdAt ? formatDate(msg.createdAt) : '';
 
       lines.push(`## ${roleLabel}${timeLabel ? ` · ${timeLabel}` : ''}`);

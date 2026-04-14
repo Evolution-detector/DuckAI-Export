@@ -19,8 +19,8 @@ export default defineConfig({
   // Popup 入口（自定义 HTML）
   popup: 'entrypoints/popup/index.html',
 
-  // 权限最小化
-  permissions: [],
+  // 权限最小化（Chrome/Edge 需要 tabs，Firefox 由 gecko 设置覆盖）
+  permissions: ['tabs'],
 
   // Web-accessible resources（如果有的话）
   webAccessibleResources: [],
@@ -31,6 +31,16 @@ export default defineConfig({
       48: 'icons/icon-48.png',
       96: 'icons/icon-96.png',
       128: 'icons/icon-128.png',
+    },
+    // Firefox MV3 上架必需
+    browser_specific_settings: {
+      gecko: {
+        id: 'duckai-export@yourdomain.example',
+        // 声明不收集任何数据（必需）
+        data_collection_permissions: {
+          required: ['none'],
+        },
+      },
     },
   },
 

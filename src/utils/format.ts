@@ -16,121 +16,45 @@ function log(...args: unknown[]): void {
  * 以及包含 getTime() 方法的 Date-like 对象
  */
 function toDate(value: unknown): Date {
-  if (value === undefined || value === null) {
-    log('[toDate] 输入为 undefined/null，返回 1970');
-    return new Date(0);
-  }
+  if (value === undefined || value === null) return new Date(0);
 
-  // 如果是 Date 对象
-  if (value instanceof Date) {
-    log('[toDate] 输入是 Date 对象:', value);
-    return value;
-  }
+  if (value instanceof Date) return value;
 
-  // 如果是数字（Unix 时间戳）
   if (typeof value === 'number') {
-    // 1775724123412 这种 13 位是毫秒，10 位是秒
     const ms = value < 1e12 ? value * 1000 : value;
-    log('[toDate] 数字时间戳:', value, '->', new Date(ms));
     return new Date(ms);
   }
 
-  // 如果是字符串
   if (typeof value === 'string') {
-    log('[toDate] 字符串输入:', value, '长度:', value.length);
-
-    // 检查是否是 JSON 字符串
     if (value.startsWith('{') || value.startsWith('[')) {
-      log('[toDate] 检测到 JSON 字符串，尝试解析...');
-      try {
-        const parsed = JSON.parse(value);
-        log('[toDate] JSON 解析结果:', typeof parsed, parsed);
-        // 递归处理解析后的值
-        return toDate(parsed);
-      } catch (e) {
-        log('[toDate] JSON 解析失败:', e);
-        return new Date(0);
-      }
+      try { return toDate(JSON.parse(value)); } catch { return new Date(0); }
     }
-
-    // "Date Thu Apr 09 2026 16:22:22 GMT+0800 (中国标准时间)" 格式
     const dateStrMatch = value.match(/^Date\s+(.+?)\s*\(/);
     if (dateStrMatch) {
       const parsed = new Date(dateStrMatch[1]);
-      if (!isNaN(parsed.getTime())) {
-        log('[toDate] 匹配 Date(...) 格式成功:', parsed);
-        return parsed;
-      }
+      if (!isNaN(parsed.getTime())) return parsed;
     }
-
-    // 标准 ISO 格式或可解析的日期字符串
     const parsed = new Date(value);
-    if (!isNaN(parsed.getTime())) {
-      log('[toDate] 标准解析成功:', parsed);
-      return parsed;
-    }
-
-    log('[toDate] 无法解析字符串，返回 1970');
+    if (!isNaN(parsed.getTime())) return parsed;
     return new Date(0);
   }
 
-  // 如果是对象，尝试查找 Date 相关属性
   if (typeof value === 'object') {
     const obj = value as Record<string, unknown>;
-    log('[toDate] 对象输入，尝试提取时间属性，对象键:', Object.keys(obj));
-
-    // 尝试 getTime() 方法（如果整个对象是 Date-like）
     if (typeof (obj as { getTime?: () => number }).getTime === 'function') {
-      const t = (obj as { getTime: () => number }).getTime();
-      log('[toDate] 对象有 getTime():', t);
-      return new Date(t);
+      return new Date((obj as { getTime: () => number }).getTime());
     }
-
-    // 尝试常见的日期字段
     const timeFields = ['timestamp', 'time', 'date', 'valueOf', 'value'];
     for (const field of timeFields) {
       if (obj[field] !== undefined) {
         const result = toDate(obj[field]);
-        if (result.getTime() > 0) {
-          log('[toDate] 从字段', field, '解析成功:', result);
-          return result;
-        }
+        if (result.getTime() > 0) return result;
       }
     }
-
-    log('[toDate] 无法从对象提取有效时间，返回 1970');
     return new Date(0);
   }
 
-  // 其他类型
-  log('[toDate] 未知类型:', typeof value, '返回 1970');
   return new Date(0);
-}
-
-/**
- * 从消息中提取该消息关联的图片 UUID 列表
- * 支持格式：
- * - content.images: [{ type: "image", savedData: { id: "uuid" } }]
- */
-function extractMessageImageIds(msg: Record<string, unknown>): string[] {
-  const ids: string[] = [];
-
-  // 情况 1: content.images 数组
-  if (msg.content && typeof msg.content === 'object') {
-    const content = msg.content as Record<string, unknown>;
-    if (Array.isArray(content.images)) {
-      for (const img of content.images as Array<Record<string, unknown>>) {
-        if (img.type === 'image' && img.savedData && typeof img.savedData === 'object') {
-          const savedData = img.savedData as Record<string, unknown>;
-          if (typeof savedData.id === 'string') {
-            ids.push(savedData.id);
-          }
-        }
-      }
-    }
-  }
-
-  return ids;
 }
 
 /**
@@ -140,6 +64,8 @@ function extractMessageImageIds(msg: Record<string, unknown>): string[] {
  * 支持格式（来自 IndexedDB 原始数据）：
  * - content.images: [{ type: "image", mimeType: "image/png", filename?: "...", savedData: { id: "uuid" } }]
  * - content.files:  [{ type: "file",  mimeType: "application/pdf", filename: "...pdf", id: "uuid" }]
+ * - parts:          [{ type: "generated-image", savedData: { id: "uuid" }, format: "jpeg" }]
+ *   （AI 生成图片，UUID 在 savedData.id，格式在 format 字段）
  */
 interface AttachmentRef {
   id: string;
@@ -150,45 +76,64 @@ interface AttachmentRef {
 function extractMessageAttachments(msg: Record<string, unknown>): AttachmentRef[] {
   const refs: AttachmentRef[] = [];
 
-  if (!msg.content || typeof msg.content !== 'object') return refs;
-  const content = msg.content as Record<string, unknown>;
+  // content.images / content.files 分支（仅当 content 是对象时）
+  if (msg.content && typeof msg.content === 'object') {
+    const content = msg.content as Record<string, unknown>;
 
-  // content.images 数组（图片类型附件）
-  if (Array.isArray(content.images)) {
-    for (const item of content.images as Array<Record<string, unknown>>) {
-      if (!item.savedData || typeof item.savedData !== 'object') continue;
-      const savedData = item.savedData as Record<string, unknown>;
-      if (typeof savedData.id !== 'string') continue;
-      refs.push({
-        id: savedData.id,
-        mimeType: typeof item.mimeType === 'string' ? item.mimeType : 'image/png',
-        filename: typeof item.filename === 'string' ? item.filename : undefined,
-      });
-    }
-  }
-
-  // content.files 数组（文件类型附件，如 PDF）
-  // 注意：PDF/文档的 UUID 在 savedData.id 中，而不是 item.id
-  if (Array.isArray(content.files)) {
-    for (const item of content.files as Array<Record<string, unknown>>) {
-      if (item.type !== 'file') continue;
-      let uuid: string | undefined;
-      // 先尝试 item.savedData.id（PDF/文档格式）
-      if (item.savedData && typeof item.savedData === 'object') {
-        const sd = item.savedData as Record<string, unknown>;
-        if (typeof sd.id === 'string') uuid = sd.id;
+    // content.images 数组（图片类型附件）
+    if (Array.isArray(content.images)) {
+      for (const item of content.images as Array<Record<string, unknown>>) {
+        if (!item.savedData || typeof item.savedData !== 'object') continue;
+        const savedData = item.savedData as Record<string, unknown>;
+        if (typeof savedData.id !== 'string') continue;
+        refs.push({
+          id: savedData.id,
+          mimeType: typeof item.mimeType === 'string' ? item.mimeType : 'image/png',
+          filename: typeof item.filename === 'string' ? item.filename : undefined,
+        });
       }
-      // 回退到顶层 item.id（如果有）
-      if (!uuid && typeof item.id === 'string') uuid = item.id;
-      if (!uuid) continue;
-      refs.push({
-        id: uuid,
-        mimeType: typeof item.mimeType === 'string' ? item.mimeType : 'application/octet-stream',
-        filename: typeof item.filename === 'string' ? item.filename : undefined,
-      });
+    }
+
+    // content.files 数组（文件类型附件，如 PDF）
+    // 注意：PDF/文档的 UUID 在 savedData.id 中，而不是 item.id
+    if (Array.isArray(content.files)) {
+      for (const item of content.files as Array<Record<string, unknown>>) {
+        if (item.type !== 'file') continue;
+        let uuid: string | undefined;
+        // 先尝试 item.savedData.id（PDF/文档格式）
+        if (item.savedData && typeof item.savedData === 'object') {
+          const sd = item.savedData as Record<string, unknown>;
+          if (typeof sd.id === 'string') uuid = sd.id;
+        }
+        // 回退到顶层 item.id（如果有）
+        if (!uuid && typeof item.id === 'string') uuid = item.id;
+        if (!uuid) continue;
+        refs.push({
+          id: uuid,
+          mimeType: typeof item.mimeType === 'string' ? item.mimeType : 'application/octet-stream',
+          filename: typeof item.filename === 'string' ? item.filename : undefined,
+        });
+      }
     }
   }
 
+  // parts 数组（AI 生成图片：type = "generated-image"）
+  // 重要：此分支独立于 content 检查，即使 content 不存在也要执行
+  const parts = msg.parts as Array<Record<string, unknown>> | undefined;
+  if (Array.isArray(parts)) {
+    for (const part of parts) {
+      if (part.type === 'generated-image') {
+        const savedData = part.savedData as Record<string, unknown> | undefined;
+        if (savedData && typeof savedData.id === 'string') {
+          const format = typeof part.format === 'string' ? part.format : 'jpeg';
+          refs.push({ id: savedData.id, mimeType: `image/${format.replace(/^image\//, '')}` });
+          log(`[AI 生图] ${savedData.id}`);
+        }
+      }
+    }
+  }
+
+  log(`[attach] ${refs.length} 个附件`);
   return refs;
 }
 
@@ -199,6 +144,7 @@ function extractMessageAttachments(msg: Record<string, unknown>): AttachmentRef[
  * 2. { content: { text: "..." } }
  * 3. { parts: [{ type: "text", text: "..." }] }
  * 4. { content: { text: "..." }, ... } - 同时有 content 和 parts
+ * 5. { parts: [{ type: "generated-image", ... }] } - AI 生成图片（无文本时返回空字符串，图片由 chatToMarkdown 嵌入 Markdown）
  */
 export function extractMessageContent(msg: unknown): string {
   if (!msg || typeof msg !== 'object') {
@@ -218,10 +164,25 @@ export function extractMessageContent(msg: unknown): string {
 
   // AI 回复：从 parts 提取文本
   if (Array.isArray(parts)) {
+    // 先检查 parts 组成
+    let textParts: string[] = [];
+    let hasGeneratedImage = false;
     for (const part of parts) {
-      if (part.type === 'text' && typeof part.text === 'string') {
-        return part.text;
+      if (part.type === 'text' && typeof part.text === 'string' && part.text.length > 0) {
+        textParts.push(part.text);
       }
+      if (part.type === 'generated-image') {
+        hasGeneratedImage = true;
+      }
+    }
+    // 如果有文本片段（可能同时有 generated-image）
+    if (textParts.length > 0) {
+      return textParts.join('\n');
+    }
+    // 如果只有 generated-image，无文本 → 返回空字符串
+    // 图片由调用方（chatToMarkdown）从 extractMessageAttachments 提取并嵌入 Markdown
+    if (hasGeneratedImage) {
+      return '';
     }
   }
 
@@ -254,20 +215,21 @@ export function isValidChat(chat: unknown): boolean {
     return false;
   }
 
-  // 检查是否有实际内容的消息（至少有一条消息有内容）
-  const hasContent = messages.some(msg => {
-    if (!msg || typeof msg !== 'object') return false;
-    const m = msg as Record<string, unknown>;
-    // 有文本 content
-    if (typeof m.content === 'string' && m.content.length > 0) return true;
-    // parts 中有文本
-    if (Array.isArray(m.parts)) {
-      for (const part of m.parts as Array<Record<string, unknown>>) {
-        if (typeof part.text === 'string' && part.text.length > 0) return true;
+    // 检查是否有实际内容的消息（至少有一条消息有内容）
+    const hasContent = messages.some(msg => {
+      if (!msg || typeof msg !== 'object') return false;
+      const m = msg as Record<string, unknown>;
+      // 有文本 content
+      if (typeof m.content === 'string' && m.content.length > 0) return true;
+      // parts 中有文本 或 generated-image
+      if (Array.isArray(m.parts)) {
+        for (const part of m.parts as Array<Record<string, unknown>>) {
+          if (typeof part.text === 'string' && part.text.length > 0) return true;
+          if (part.type === 'generated-image') return true;
+        }
       }
-    }
-    return false;
-  });
+      return false;
+    });
 
   if (!hasContent) {
     log('[isValidChat] 无效：所有消息都无内容');
@@ -378,28 +340,36 @@ export function formatDate(timestamp: number | string | undefined): string {
 /**
  * 生成 Zip 内相对路径
  * @param titleOrFilename 如果文件名已包含 .md 后缀（如 from getFilenameWithDate），则直接使用
+ * @param model 如果为 'image-generation'，在标题前加【image】
  */
 export function getArchivePath(
   title: unknown,
   timestamp: number | string | undefined,
   level: 'flat' | 'year' | 'yearMonth',
+  model?: string,
 ): string {
   const date = toDate(timestamp);
   const year = date.getFullYear();
   const month = date.getMonth() + 1;
   const titleStr = String(title ?? '');
+  const prefix = model === 'image-generation' ? '【image】' : '';
 
   // 如果文件名已经包含 .md 后缀（来自 getFilenameWithDate），直接使用文件名
   if (titleStr.endsWith('.md')) {
+    // 已含【image】说明是 getFilenameWithDate 加的，勿重复
+    const alreadyHasPrefix = titleStr.includes('【image】');
+    const nameWithPrefix = alreadyHasPrefix
+      ? titleStr
+      : titleStr.replace(/^(\d{4}-\d{2}-\d{2}\([^)]+\)-)/, `$1${prefix}`);
     switch (level) {
       case 'flat':
-        return titleStr;
+        return nameWithPrefix;
       case 'year':
-        return `${year}/${titleStr}`;
+        return `${year}/${nameWithPrefix}`;
       case 'yearMonth':
-        return `${year}/${month.toString().padStart(2, '0')}_${getMonthName(month)}/${titleStr}`;
+        return `${year}/${month.toString().padStart(2, '0')}_${getMonthName(month)}/${nameWithPrefix}`;
       default:
-        return `${year}/${titleStr}`;
+        return `${year}/${nameWithPrefix}`;
     }
   }
 
@@ -408,13 +378,13 @@ export function getArchivePath(
 
   switch (level) {
     case 'flat':
-      return `${safeTitle}.md`;
+      return `${prefix}${safeTitle}.md`;
     case 'year':
-      return `${year}/${safeTitle}.md`;
+      return `${year}/${prefix}${safeTitle}.md`;
     case 'yearMonth':
-      return `${year}/${month.toString().padStart(2, '0')}_${getMonthName(month)}/${safeTitle}.md`;
+      return `${year}/${month.toString().padStart(2, '0')}_${getMonthName(month)}/${prefix}${safeTitle}.md`;
     default:
-      return `${year}/${safeTitle}.md`;
+      return `${year}/${prefix}${safeTitle}.md`;
   }
 }
 
@@ -442,10 +412,12 @@ function getTimezoneString(): string {
 /**
  * 生成带时间戳的文件名
  * 例如：会话标题-2026-04-09(UTC+8).md
+ * 如果 model 为 'image-generation'，在标题前加【image】
  */
 export function getFilenameWithDate(
   title: unknown,
   timestamp: number | string | undefined,
+  model?: string,
 ): string {
   const date = toDate(timestamp);
   const year = date.getFullYear();
@@ -453,7 +425,8 @@ export function getFilenameWithDate(
   const day = date.getDate().toString().padStart(2, '0');
   const safeTitle = sanitizeFilename(title);
   const tz = getTimezoneString();
-  return `${year}-${month}-${day}(${tz})-${safeTitle}.md`;
+  const prefix = model === 'image-generation' ? '【image】' : '';
+  return `${year}-${month}-${day}(${tz})-${prefix}${safeTitle}.md`;
 }
 
 /**
@@ -532,7 +505,9 @@ export function chatToMarkdown(
     const m = msg as Record<string, unknown>;
     const content = extractMessageContent(msg);
     const role = String(m.role ?? 'unknown');
-    const roleLabel = role === 'user' ? '👤 用户' : '🤖 AI';
+    const roleLabel = role === 'user'
+      ? (navigator.language.startsWith('en') ? '👤 User' : '👤 用户')
+      : '🤖 AI';
     const timeLabel = m.createdAt ? formatDate(m.createdAt) : '';
 
     lines.push(`## ${roleLabel}${timeLabel ? ` · ${timeLabel}` : ''}`);
@@ -547,7 +522,7 @@ export function chatToMarkdown(
       for (const att of attachments) {
         const img = findImageByUuid(imageMap, att.id);
         if (!img) {
-          log(`[chatToMarkdown] 附件 ${att.id} 在 imageMap 中不存在，跳过`);
+          log(`[attach] ${att.id} 在 imageMap 中不存在`);
           continue;
         }
         if (isImageMime(att.mimeType)) {

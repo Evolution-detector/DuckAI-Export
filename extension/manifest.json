@@ -1,0 +1,32 @@
+{
+  "$schema": "https://wxt.dev/schema/manifest/3.json",
+  "manifest_version": 3,
+  "name": "DuckAI Export",
+  "description": "将 Duck.ai 对话数据导出为结构化 Markdown，支持图片和元数据",
+  "version": "1.0.0",
+  "author": "DuckAI Export",
+  "homepage_url": "https://github.com/duckai-export/duckai-export",
+  "icons": {
+    "48": "icons/icon-48.svg",
+    "96": "icons/icon-96.svg",
+    "128": "icons/icon-128.svg"
+  },
+  "permissions": [],
+  "host_permissions": [
+    "https://duck.ai/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://duck.ai/*"],
+      "js": ["content-scripts/main.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup/index.html",
+    "default_icon": {
+      "48": "icons/icon-48.svg"
+    },
+    "default_title": "DuckAI Export"
+  }
+}

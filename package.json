@@ -1,6 +1,6 @@
 {
   "name": "duckai-export",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "description": "Duck.ai 全量 Markdown 备份浏览器扩展 - 将对话数据导出为结构化 Markdown ZIP 包",
   "type": "module",
   "scripts": {

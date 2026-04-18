@@ -2,8 +2,8 @@ import { defineConfig } from 'wxt';
 
 export default defineConfig({
   // 扩展基本信息
-  languages: ['zh-CN', 'en-US'],
-  defaultLanguage: 'zh-CN',
+  languages: ['en', 'zh-CN'],
+  defaultLanguage: 'en',
 
   // Firefox MV3 构建目标
   browser: 'firefox',
@@ -25,8 +25,11 @@ export default defineConfig({
   // Web-accessible resources（如果有的话）
   webAccessibleResources: [],
 
-  // 图标
+  // 图标 & 扩展信息（Chrome/Edge 必须用 __MSG_ 占位符才能多语言）
   manifest: {
+    version: '1.1.1',
+    name: '__MSG_extensionName__',
+    description: '__MSG_extensionDescription__',
     icons: {
       48: 'icons/icon-48.png',
       96: 'icons/icon-96.png',

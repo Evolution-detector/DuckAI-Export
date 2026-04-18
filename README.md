@@ -10,6 +10,7 @@
 
 ### Features
 
+- **A privacy-first open-source project**
 - **Export scope**: All conversations or current conversation only
 - **Output format**: ZIP containing Markdown files + all attachments (images, PDFs, etc.)
 - **Markdown content**:
@@ -146,8 +147,9 @@ The `post-build.cjs` script then removes any residual gecko fields after Chrome/
 
 > 浏览器扩展：将 Duck.ai 对话完整导出为 Markdown + 附件 ZIP
 
-### 功能
+### 功能特性
 
+- **隐私优先的开源项目**
 - **导出范围**：全量导出（所有对话）或单个导出（当前对话）
 - **输出格式**：ZIP 压缩包，内含 Markdown 文件 + 所有附件（图片、PDF 等）
 - **Markdown 内容**：
